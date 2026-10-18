@@ -1,0 +1,9 @@
+services:
+  araignee:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "4010:4010"
+    volumes:
+      - ./data:/app/data

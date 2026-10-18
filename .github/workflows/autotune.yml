@@ -1,0 +1,33 @@
+# Amélioration continue : chaque dimanche, Fred cherche de meilleurs réglages et ne les adopte
+# que s'ils passent le test à l'aveugle (verdict DATA VALIDATED et meilleurs que les actuels).
+name: autotune
+
+on:
+  schedule:
+    - cron: "20 3 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: araignee
+  cancel-in-progress: false
+
+jobs:
+  autotune:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/autotune.py --essais 300
+      - name: Sauvegarde
+        run: |
+          git config user.name "araignee-bot"
+          git config user.email "araignee-bot@users.noreply.github.com"
+          git add config.json data/ameliorations.json
+          git diff --cached --quiet || git commit -m "Fred : amélioration hebdomadaire $(date -u +'%Y-%m-%d')"
+          git pull --rebase && git push

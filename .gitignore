@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+cache/
+data/*.tmp
+data/backtest-journal.csv
+_site/
+.DS_Store
