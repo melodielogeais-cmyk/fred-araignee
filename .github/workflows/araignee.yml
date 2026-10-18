@@ -1,11 +1,11 @@
-# Fred tourne toutes les heures (simulation) : il rejoue minute par minute les vraies bougies
+# Fred tourne toutes les 30 minutes (simulation) : il rejoue minute par minute les vraies bougies
 # depuis son passage précédent, sauvegarde son état, et met à jour le dossier site/
 # (seul dossier publié par l'hébergeur : ni code ni configuration).
 name: araignee
 
 on:
   schedule:
-    - cron: "7 * * * *"
+    - cron: "7,37 * * * *"
   workflow_dispatch:
 
 permissions:

@@ -145,8 +145,14 @@ def run(cfg, pf=None, notify=None, live=False):
         m1 = market.history(pair, 60, min(after, now - 3600) - 25 * 3600, now)
         m5 = market.history(pair, 300, min(after, now - 3600) - 30 * 3600, now)
         d1 = market.history(pair, 86400, now - 260 * 86400, now)
+        n_notes = len(pf.s["notes"])
         F, last = simulate(pf, brain, cfg, pair, m1, m5, after, notify, d1, macro)
         snapshot(pf, cfg, pair, F, last)
+        # l'araignée laisse une trace à chaque passage, même sans trade (au plus une toutes les 30 min)
+        if len(pf.s["notes"]) == n_notes and F.m1:
+            prev = [x for x in pf.s["notes"] if x.get("type") == "scan"]
+            if not prev or F.m1[-1]["t"] - prev[-1]["t"] >= 1800:
+                pf.note(pair, F.m1[-1]["t"], "scan · " + scan_note(F, len(F.m1) - 1), "scan")
     finish(pf, cfg)
     st = pf.s["stats"]
     print("{} · capital fictif {:,.2f} ({:+.2f} %) · {} trades".format(
