@@ -27,7 +27,8 @@ python3 -m unittest discover tests
 ```
 
 ## Mise en ligne
-**Option 1 : GitHub Actions (gratuit, déjà configuré).** `.github/workflows/araignee.yml` tourne toutes les heures. Chaque passage rejoue minute par minute les bougies écoulées depuis le passage précédent, sauvegarde `data/state.json` et publie le tableau de bord sur GitHub Pages.
+**Option 1 : GitHub Actions + Netlify ou Vercel (gratuit, déjà configuré).** `.github/workflows/araignee.yml` tourne toutes les heures. Chaque passage rejoue minute par minute les bougies écoulées depuis le passage précédent, sauvegarde `data/state.json` et met à jour `site/`. Netlify ou Vercel publie **uniquement** `site/` (voir `netlify.toml` et `vercel.json`).
+`.github/workflows/autotune.yml` lance l'amélioration continue chaque dimanche.
 - Secrets à ajouter dans le dépôt (Settings → Secrets → Actions) : `XAI_API_KEY`, et en option `TELEGRAM_TOKEN` et `TELEGRAM_CHAT_ID`.
 
 **Option 2 : serveur ou VPS (temps réel, avec VET sur le carnet d'ordres).**
