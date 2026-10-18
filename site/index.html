@@ -84,7 +84,7 @@ td{padding:6px 4px;border-top:1px solid #1c1c20;white-space:nowrap}
  <div class="logo"><div class="lg g"></div><span style="color:var(--mute)">+</span><div class="lg j">⌘</div></div>
  <div class="title"><h1>FRED 🕷</h1><p>grok + jev · 6 agents · 1 crawler · reads 5m, trades 1m</p></div>
  <div class="pills">
-  <div class="tabs"><button data-src="state" class="a">Direct</button><button data-src="backtest">Backtest</button></div>
+  <div class="tabs"><button data-src="local" id="tlocal">Mac</button><button data-src="state" class="a">En ligne</button><button data-src="backtest">Backtest</button></div>
   <span class="pill sim">SIMULATION</span>
   <span class="pill">BANK <b id="bank">–</b></span>
   <span class="pill" id="dialp" title="QUANT : avec quelle force l'équipe peut trader aujourd'hui">QUANT DIAL <b id="dial">–</b></span>
@@ -255,7 +255,7 @@ function render(t){
   const q=v.agents.quant||{};$('dial').textContent=q.arret?'KILL SWITCH':fmt(q.cadran,2);$('dial').style.color=q.arret||q.cadran<q.min?'var(--red)':'var(--cyan)';$('dialp').title='QUANT · '+(q.info||'')+' · on trade si ≥ '+q.min;
   $('w').textContent=(st.gagnants||0)+'W';$('l').textContent=(st.perdants||0)+'L';$('wr').textContent=(st.taux_reussite_pct||0)+'%';
   $('bal').textContent=money(S.capital);$('from').textContent='perf '+((st.performance_pct||0)>=0?'+':'')+(st.performance_pct||0)+'% · from '+money(S.depart);
-  $('sess').textContent=src==='backtest'?'backtest':'live session';
+  $('sess').textContent=src==='backtest'?'backtest · 88 jours':src==='local'?'live session · Mac':'live session · en ligne';
   const F=j?j.facteurs:[['liquidity sweep'],['rsi divergence'],['volume spike'],['vwap reclaim'],['break of structure']].map(([n])=>({nom:n,ok:false,detail:'next'}));
   $('fac').innerHTML=F.map((f,k)=>`<div><span class="nb ${f.ok?'ok':''}">${k+1}</span>${f.nom}<em>${f.ok?f.detail:'—'}</em></div>`).join('');
   const sc=j?j.score:0;$('segs').innerHTML=[0,1,2,3,4].map(k=>`<span class="${k<sc?'ok':''}"></span>`).join('');
@@ -275,6 +275,6 @@ function frame(t){if(S){const v=S.vue[S.paires[0]];if(v){drawChart(v,t);drawJev(
 async function loadAmel(){try{const a=await (await fetch('data/ameliorations.json?'+Date.now(),{cache:'no-store'})).json();
   $('amel').innerHTML=a.slice().reverse().map(e=>`<div style="padding:6px 0;border-bottom:1px solid #1c1c20"><span style="color:#666">${e.date}</span> · <b style="color:${e.decision.startsWith('NOUVEAUX')?'var(--cyan)':'#ddd'}">${e.decision}</b><br>actuels : ${e.actuel.verdict}, test ${e.actuel.test_pct}%${e.nouveau?' → nouveaux : '+e.nouveau.verdict+', test '+e.nouveau.test_pct+'%':''}</div>`).join('')}catch(e){}}
 loadAmel();
-async function load(){try{S=await (await fetch('data/'+src+'.json?'+Date.now(),{cache:'no-store'})).json();render();drawEq()}catch(e){$('foot').textContent="Pas encore de données ("+src+") : lance l'agent."}}
+async function load(){if(src==='state'&&!window._probed){window._probed=1;try{const r=await fetch('data/local.json',{cache:'no-store'});if(r.ok){src='local';document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('a',x.dataset.src==='local'))}else $('tlocal').style.display='none'}catch(e){$('tlocal').style.display='none'}}try{S=await (await fetch('data/'+src+'.json?'+Date.now(),{cache:'no-store'})).json();render();drawEq()}catch(e){$('foot').textContent="Pas encore de données ("+src+") : lance l'agent."}}
 load();setInterval(load,30000);addEventListener('resize',()=>S&&drawEq());requestAnimationFrame(frame);
 </script></body></html>
