@@ -4,7 +4,7 @@
 cd "$(dirname "$0")"
 KEY=$(osascript -e 'text returned of (display dialog "Colle ici ta clé API Grok (elle restera masquée) :" default answer "" with hidden answer with title "Fred 🕷 · clé Grok" buttons {"Annuler","Installer"} default button "Installer")' 2>/dev/null | tr -d '\r\n ')
 if [ -z "$KEY" ]; then echo "Annulé."; exit 1; fi
-if [[ ! "$KEY" =~ '^[A-Za-z0-9_-]{30,300}$' ]]; then echo "❌ Ce n'est pas une clé API valide."; exit 1; fi
+if [[ ! "$KEY" =~ '^[A-Za-z0-9_-]{30,255}$' ]]; then echo "❌ Ce n'est pas une clé API valide."; exit 1; fi
 RESP=$(curl -s -w "\n%{http_code}" https://api.x.ai/v1/responses -H "Content-Type: application/json" \
   -H "Authorization: Bearer $KEY" -d '{"model":"grok-4.7","input":"Réponds juste: ok"}')
 CODE=$(echo "$RESP" | tail -1)
