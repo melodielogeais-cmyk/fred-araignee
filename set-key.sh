@@ -1,13 +1,20 @@
 #!/bin/zsh
 # Installe la clé API Grok (xAI) depuis le presse-papiers, sans l'afficher :
-#   1. copie la clé sur console.x.ai  2. lance : ./set-key.sh
+#   1. lance : ./set-key.sh   2. dans les 3 minutes, copie la clé sur console.x.ai
 # Elle est enregistrée dans .env (Fred du Mac) et dans les secrets GitHub (Fred en ligne).
 cd "$(dirname "$0")"
-KEY="$(pbpaste | tr -d '\r\n ')"
-if [[ ! "$KEY" =~ '^[A-Za-z0-9_-]{30,200}$' ]]; then
-  echo "❌ Le presse-papiers ne contient pas une clé API (copie la clé sur la page API keys, puis relance)."
+echo "⏳ Copie maintenant ta clé Grok (icône copier sur la page API keys). J'attends 3 minutes…"
+KEY=""
+for i in $(seq 1 180); do
+  C="$(pbpaste | tr -d '\r\n ')"
+  if [[ "$C" =~ '^[A-Za-z0-9_-]{30,200}$' ]]; then KEY="$C"; break; fi
+  sleep 1
+done
+if [ -z "$KEY" ]; then
+  echo "❌ Aucune clé copiée en 3 minutes. Relance le script, puis copie la clé."
   exit 1
 fi
+printf "" | pbcopy  # on vide le presse-papiers : la clé n'y traîne pas
 CODE=$(curl -s -o /dev/null -w "%{http_code}" https://api.x.ai/v1/models -H "Authorization: Bearer $KEY")
 if [ "$CODE" != "200" ]; then
   echo "❌ L'API Grok refuse cette clé (HTTP $CODE). Crée une clé « API » sur console.x.ai (pas une clé Cursor/agent) et vérifie le crédit."
