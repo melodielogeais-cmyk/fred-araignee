@@ -5,7 +5,7 @@
   ],
   "devise": "€",
   "cerveau": "grok",
-  "modele_grok": "grok-4",
+  "modele_grok": "grok-4.7",
   "modele_claude": "claude-haiku-5-5",
   "appels_ia_max_par_jour": 60,
   "capital_fictif": 1000,

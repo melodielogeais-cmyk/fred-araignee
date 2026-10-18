@@ -95,11 +95,14 @@ class Brain:
         key = os.environ.get("XAI_API_KEY")
         if not key:
             raise RuntimeError("XAI_API_KEY absente")
-        body = {"model": self.cfg["modele_grok"], "temperature": 0.2,
-                "messages": [{"role": "system", "content": SYSTEM.format(pair=pair)},
-                             {"role": "user", "content": json.dumps(facts, ensure_ascii=False)}]}
-        resp = _post("https://api.x.ai/v1/chat/completions", body, {"Authorization": "Bearer " + key})
-        return resp["choices"][0]["message"]["content"]
+        body = {"model": self.cfg["modele_grok"],
+                "input": [{"role": "system", "content": SYSTEM.format(pair=pair)},
+                          {"role": "user", "content": json.dumps(facts, ensure_ascii=False)}]}
+        resp = _post("https://api.x.ai/v1/responses", body, {"Authorization": "Bearer " + key})
+        if resp.get("output_text"):
+            return resp["output_text"]
+        return "".join(c.get("text", "") for o in resp.get("output", []) if o.get("type") == "message"
+                       for c in o.get("content", []))
 
     def _claude(self, pair, facts):
         key = os.environ.get("ANTHROPIC_API_KEY")
