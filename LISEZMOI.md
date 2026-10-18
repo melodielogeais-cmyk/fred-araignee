@@ -19,7 +19,7 @@ Le crawler laisse **une note d'une ligne avant chaque trade**.
 
 ## Lancer en local
 ```bash
-cp .env.example .env              # mettre XAI_API_KEY pour le cerveau Grok (sinon : règles seules)
+./set-key.sh                      # copier la clé Grok, puis lancer : elle est vérifiée et installée sans être affichée
 ./start.sh                        # agent en continu + tableau de bord http://localhost:4010
 python3 -m araignee backtest --jours 30     # rejoue 30 jours (règles seules, gratuit)
 python3 -m araignee backtest --jours 3 --ia # rejoue avec Grok (coûte des tokens)

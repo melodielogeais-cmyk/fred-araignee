@@ -21,6 +21,19 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 
 
+def load_env():
+    """Lit .env (lignes CLE=valeur) sans jamais l'exécuter."""
+    path = os.path.join(ROOT, ".env")
+    if not os.path.exists(path):
+        return
+    for line in open(path, encoding="utf-8", errors="ignore"):
+        line = line.strip()
+        if "=" in line and not line.startswith("#"):
+            k, v = line.split("=", 1)
+            if k.isidentifier() and k.isupper() and k not in os.environ:
+                os.environ[k] = v.strip()
+
+
 def load_cfg(overrides=None):
     with open(os.path.join(ROOT, "config.json"), encoding="utf-8") as f:
         cfg = json.load(f)
@@ -241,6 +254,7 @@ def main():
     ap.add_argument("--ia", action="store_true", help="backtest avec Grok (coûte des tokens)")
     ap.add_argument("--cache", action="store_true", help="backtest sur l'historique en cache/")
     a = ap.parse_args()
+    load_env()
     cfg = load_cfg()
     if a.mode == "run":
         notify = telegram()
