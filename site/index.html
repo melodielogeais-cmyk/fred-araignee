@@ -58,6 +58,7 @@ td{padding:7px 4px;border-top:1px solid #1c1c20;white-space:nowrap}td.r,th.r{tex
  <div class="title"><h1>MELO · NONO · <span>FRED</span> 🕷</h1><p>L'araignée de trading · simulation avec 1 000 € fictifs · aucun argent réel</p></div>
  <div class="pills">
   <span class="pill live"><i></i>EN DIRECT</span>
+  <span class="pill" id="mode" style="display:none"></span>
   <span class="pill">BTC <b id="price">–</b></span>
   <span class="clock mono" id="clock">--:--:--</span>
  </div>
@@ -80,8 +81,9 @@ td{padding:7px 4px;border-top:1px solid #1c1c20;white-space:nowrap}td.r,th.r{tex
 
 <div class="panel">
  <div class="ch">
-  <div class="coin">₿</div><b>Bitcoin / Euro</b><span class="px" id="price2">–</span><span id="chg" style="font-size:12px"></span>
-  <div class="tf"><button data-g="60" class="a">1 min</button><button data-g="300">5 min</button></div>
+  <div class="coin" id="coin">₿</div><b id="pname">Bitcoin / Euro</b><span class="px" id="price2">–</span><span id="chg" style="font-size:12px"></span>
+  <div class="tf" id="pairs" style="margin-left:auto"></div>
+  <div class="tf" style="margin-left:6px"><button data-g="60" class="a">1 min</button><button data-g="300">5 min</button></div>
  </div>
  <canvas id="chart"></canvas>
 </div>
@@ -90,7 +92,7 @@ td{padding:7px 4px;border-top:1px solid #1c1c20;white-space:nowrap}td.r,th.r{tex
 
 <div class="two">
  <div class="panel"><div class="ph"><h3>Trades</h3><span id="tinfo"></span></div>
-  <div style="overflow-x:auto"><table><thead><tr><th>Heure</th><th>Sens</th><th>Entrée</th><th>Sortie</th><th class="r">Résultat</th></tr></thead><tbody id="trades"></tbody></table></div></div>
+  <div style="overflow-x:auto"><table><thead><tr><th>Heure</th><th>Sens</th><th id="pcol" style="display:none">Crypto</th><th>Entrée</th><th>Sortie</th><th class="r">Résultat</th></tr></thead><tbody id="trades"></tbody></table></div></div>
  <div class="panel"><div class="ph"><h3>Notes de l'araignée</h3><span>une ligne avant chaque décision</span></div><div class="notes" id="notes"></div></div>
 </div>
 <div class="two">
@@ -103,8 +105,13 @@ td{padding:7px 4px;border-top:1px solid #1c1c20;white-space:nowrap}td.r,th.r{tex
 
 <script>
 const $=id=>document.getElementById(id);
-const CB='https://api.exchange.coinbase.com/products/BTC-EUR';
-let S=null,M=[],G=60,price=null,open24=null;
+let PAIR='BTC-EUR',CB='https://api.exchange.coinbase.com/products/'+PAIR;
+let S=null,M=[],G=60,price=null,open24=null,prices={};
+const NAMES={'BTC-EUR':['₿','Bitcoin / Euro','#f7931a'],'ETH-EUR':['Ξ','Ethereum / Euro','#627eea']};
+function setPair(p){PAIR=p;CB='https://api.exchange.coinbase.com/products/'+p;price=null;open24=null;M=[];const n=NAMES[p]||['•',p,'#888'];
+  $('coin').textContent=n[0];$('coin').style.background=n[2];$('pname').textContent=n[1];
+  document.querySelectorAll('#pairs button').forEach(b=>b.classList.toggle('a',b.dataset.p===p));candles().then(tick);stats24()}
+async function allPrices(){if(!S)return;for(const p of S.paires||[]){if(p===PAIR)continue;try{const r=await (await fetch('https://api.exchange.coinbase.com/products/'+p+'/ticker')).json();prices[p]=+r.price}catch(e){}}}
 const eur=(n,s)=>(s&&n>0?'+':'')+Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
 const num=n=>Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const hm=t=>new Date(t*1000).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
@@ -115,7 +122,7 @@ document.querySelectorAll('.tf button').forEach(b=>b.onclick=()=>{document.query
 
 // --- données en direct (navigateur -> Coinbase) ---
 async function candles(){try{const r=await (await fetch(CB+'/candles?granularity='+G)).json();M=r.map(c=>({t:c[0],l:c[1],h:c[2],o:c[3],c:c[4],v:c[5]})).sort((a,b)=>a.t-b.t).slice(-90)}catch(e){}}
-async function tick(){try{const r=await (await fetch(CB+'/ticker')).json();price=+r.price;const last=M[M.length-1];
+async function tick(){try{const r=await (await fetch(CB+'/ticker')).json();price=+r.price;prices[PAIR]=price;const last=M[M.length-1];
   if(last){const now=Math.floor(Date.now()/1000);if(now>=last.t+G){M.push({t:last.t+G,o:price,h:price,l:price,c:price,v:0});M=M.slice(-90)}else{last.c=price;last.h=Math.max(last.h,price);last.l=Math.min(last.l,price)}}
   render()}catch(e){}}
 async function stats24(){try{const r=await (await fetch(CB+'/stats')).json();open24=+r.open}catch(e){}}
@@ -128,8 +135,9 @@ function spider(x,cx,cy,t){x.save();for(let k=0;k<12;k++){const a=k/12*Math.PI*2
   x.strokeStyle='#ffa62bcc';x.lineWidth=1.2;x.beginPath();x.moveTo(cx,cy);x.lineTo(mx,my);x.lineTo(ex,ey);x.stroke();x.fillStyle='#4fd6ff';x.beginPath();x.arc(ex,ey,2.6,0,7);x.fill()}
   x.translate(cx,cy);x.rotate(-0.5+Math.sin(t/2000)*0.1);x.strokeStyle='#ffa62b';x.lineWidth=2;x.fillStyle='#2a1a05';x.fillRect(-7,-13,14,26);x.strokeRect(-7,-13,14,26);x.fillStyle='#4fd6ff';x.beginPath();x.arc(0,-3,3,0,7);x.fill();x.restore()}
 
-function pos(){return S&&Object.values(S.positions||{})[0]}
-function unreal(){const p=pos();if(!p||!price)return 0;return (price-p.entry)*p.size*(p.side==='long'?1:-1)}
+function pos(){return S&&(S.positions||{})[PAIR]}
+function anyPos(){return S&&Object.values(S.positions||{})[0]}
+function unreal(){let u=0;Object.values(S&&S.positions||{}).forEach(p=>{const px=prices[p.pair];if(px)u+=(px-p.entry)*p.size*(p.side==='long'?1:-1)});return u}
 
 function drawChart(t){
   const [x,W,H]=setupCanvas($('chart'));if(!M.length)return;const p=pos();
@@ -143,7 +151,7 @@ function drawChart(t){
     x.fillStyle=col;x.fillRect(X-cw*.32,Math.min(y(c.o),y(c.c)),cw*.64,Math.max(1,Math.abs(y(c.o)-y(c.c))));
     x.fillStyle=up?'#4fd6ff40':'#ff6a4d40';const vh=c.v/vmax*volH;x.fillRect(X-cw*.32,H-20-vh,cw*.64,vh);
     if(k%15===0){x.fillStyle='#55555c';x.fillText(hm(c.t),X-14,H-5)}});
-  (S&&S.trades||[]).forEach(tr=>[[tr.t,tr.entry,'#4fd6ff'],[tr.t_exit,tr.exit,'#ffa62b']].forEach(([tt,v,c])=>{const k=M.findIndex(q=>q.t+G>tt);if(k>=0&&v>lo&&v<hi){x.strokeStyle=c;x.lineWidth=2;x.beginPath();x.arc(k*cw+cw/2,y(v),5,0,7);x.stroke();x.lineWidth=1}}));
+  (S&&S.trades||[]).filter(tr=>tr.pair===PAIR).forEach(tr=>[[tr.t,tr.entry,'#4fd6ff'],[tr.t_exit,tr.exit,'#ffa62b']].forEach(([tt,v,c])=>{const k=M.findIndex(q=>q.t+G>tt);if(k>=0&&v>lo&&v<hi){x.strokeStyle=c;x.lineWidth=2;x.beginPath();x.arc(k*cw+cw/2,y(v),5,0,7);x.stroke();x.lineWidth=1}}));
   const last=M[M.length-1];x.fillStyle=last.c>=last.o?'#4fd6ff':'#ff6a4d';x.fillRect(W-padR+2,y(last.c)-9,padR-4,18);x.fillStyle='#111';x.font='11px JetBrains Mono';x.fillText(num(last.c),W-padR+6,y(last.c)+4);
   spider(x,W-padR-55,Math.max(40,y(last.c)-34),t);
 }
@@ -157,13 +165,16 @@ const FR={'liquidity sweep':'Mèche sous le plancher','rsi divergence':'Essouffl
 function render(){
   if(price){$('price').textContent=num(price)+' €';$('price2').textContent=num(price)+' €';if(open24){const c=(price/open24-1)*100;$('chg').innerHTML=`<span class="${cls(c)}">${c>0?'+':''}${c.toFixed(2)} % sur 24 h</span>`}}
   if(!S)return;
-  const p=pos(),u=unreal(),val=S.capital+u,st=S.stats||{},tot=val-S.depart;
+  const p=anyPos(),u=unreal(),val=S.capital+u,st=S.stats||{},tot=val-S.depart;
+  const multi=(S.paires||[]).length>1;
+  if(multi&&!$('pairs').children.length){$('pairs').innerHTML=S.paires.map(x=>`<button data-p="${x}" class="${x===PAIR?'a':''}">${x.split('-')[0]}</button>`).join('');document.querySelectorAll('#pairs button').forEach(b=>b.onclick=()=>setPair(b.dataset.p))}
+  if(S.mode==='x2'){const pr=S.mode_actif==='prudent';$('mode').style.display='';$('mode').innerHTML=pr?'🛡️ <b>Mode prudent</b> (garde-fou)':'🚀 <b>Mode x2</b> · risque '+(S.risque_pct||2)+' %/trade';$('mode').style.color=pr?'var(--orange)':'var(--pink)'}
   $('val').textContent=eur(val);$('tot').innerHTML=`<span class="${cls(tot)}">${eur(tot,1)} (${(tot/S.depart*100).toFixed(2)} %)</span>`;
   const today=new Date().toDateString(),dpnl=(S.trades||[]).filter(x=>new Date(x.t_exit*1000).toDateString()===today).reduce((a,b)=>a+b.pnl,0)+u;
   $('day').innerHTML=`<span class="${cls(dpnl)}">${eur(dpnl,1)}</span>`;$('wl').textContent=`${st.gagnants||0} gagnés · ${st.perdants||0} perdus`;
-  const v=(S.vue||{})[S.paires[0]]||{},j=v.jev,q=(v.agents||{}).quant||{};
+  const v=(S.vue||{})[PAIR]||(S.vue||{})[S.paires[0]]||{},j=v.jev,q=(v.agents||{}).quant||{};
   let say;
-  if(p)say=`🟦 Fred est en position <b>${p.side==='long'?'ACHAT':'VENTE'}</b> depuis ${hm(p.t)}. Résultat en cours : <span class="${cls(u)}">${eur(u,1)}</span>`;
+  if(p)say=`🟦 Fred est en position <b>${p.side==='long'?'ACHAT':'VENTE'}</b>${multi?' sur '+p.pair.split('-')[0]:''} depuis ${hm(p.t)}. Résultat en cours : <span class="${cls(u)}">${eur(u,1)}</span>`;
   else if(q.arret)say='⏸️ Fred est à l\'arrêt (bouton d\'urgence).';
   else if(q.cadran!=null&&q.cadran<q.min)say='😴 Fred se repose aujourd\'hui : la météo du marché est trop mauvaise.';
   else say='👀 Fred surveille le marché. Il attend qu\'au moins 4 critères sur 5 soient réunis pour acheter.';
@@ -174,7 +185,8 @@ function render(){
   const a=v.agents||{};const vals={chief:a.chief&&a.chief.etat,scan:a.scan&&a.scan.note,vet:a.vet&&a.vet.note,size:p?eur(p.notional):'prêt',fills:p?num(p.entry):'en attente',risk:a.risk&&a.risk.valeur};
   const on=p?'risk':'scan';$('agents').innerHTML=AG.map(([k,n,d])=>`<div class="ag ${k===on?'on':''}"><div class="mas m-${k}"><i></i><i></i></div><b>${n}</b><small>${d}</small><div class="v" title="${vals[k]||''}">${vals[k]||'–'}</div></div>`).join('');
   const T=(S.trades||[]).slice().reverse();
-  let rows=(p?`<tr><td>${dhm(p.t)}</td><td>${p.side==='long'?'Achat':'Vente'}</td><td>${num(p.entry)}</td><td style="color:#888">en cours</td><td class="r ${cls(u)}">${eur(u,1)}</td></tr>`:'')+T.slice(0,12).map(t=>`<tr><td>${dhm(t.t)}</td><td>${t.side==='long'?'Achat':'Vente'}</td><td>${num(t.entry)}</td><td>${num(t.exit)}</td><td class="r ${cls(t.pnl)}">${eur(t.pnl,1)}</td></tr>`).join('');
+  $('pcol').style.display=multi?'':'none';const pc=x=>multi?`<td>${x.split('-')[0]}</td>`:'';
+  let rows=Object.values(S.positions||{}).map(p=>{const px=prices[p.pair],uu=px?(px-p.entry)*p.size*(p.side==='long'?1:-1):0;return `<tr><td>${dhm(p.t)}</td><td>${p.side==='long'?'Achat':'Vente'}</td>${pc(p.pair)}<td>${num(p.entry)}</td><td style="color:#888">en cours</td><td class="r ${cls(uu)}">${eur(uu,1)}</td></tr>`}).join('')+T.slice(0,12).map(t=>`<tr><td>${dhm(t.t)}</td><td>${t.side==='long'?'Achat':'Vente'}</td>${pc(t.pair)}<td>${num(t.entry)}</td><td>${num(t.exit)}</td><td class="r ${cls(t.pnl)}">${eur(t.pnl,1)}</td></tr>`).join('');
   $('trades').innerHTML=rows||'<tr><td colspan="5" class="empty">Pas encore de trade : Fred attend un bon signal.</td></tr>';
   $('tinfo').textContent=st.trades?`${st.taux_reussite_pct} % gagnants`:'';
   $('notes').innerHTML=(S.notes||[]).slice(-40).reverse().map(n=>`<div><time>${dhm(n.t)}</time><span style="color:${n.type==='sortie'?(n.note.startsWith('+')?'var(--cyan)':'var(--red)'):n.type==='skip'?'#888':n.type==='scan'?'#9a9aa3':'var(--orange)'}">${n.note.replace(/</g,'&lt;')}</span></div>`).join('')||'<div class="empty">Aucune note pour l\'instant.</div>';
@@ -186,5 +198,5 @@ function render(){
 }
 let lastDraw=0;function frame(t){if(t-lastDraw>40){drawChart(t);lastDraw=t}requestAnimationFrame(frame)}
 (async()=>{await Promise.all([candles(),state(),stats24(),amel()]);await tick();requestAnimationFrame(frame)})();
-setInterval(tick,2000);setInterval(candles,30000);setInterval(state,30000);setInterval(stats24,300000);setInterval(amel,600000);addEventListener('resize',render);
+setInterval(tick,2000);setInterval(allPrices,5000);setInterval(candles,30000);setInterval(state,30000);setInterval(stats24,300000);setInterval(amel,600000);addEventListener('resize',render);
 </script></body></html>

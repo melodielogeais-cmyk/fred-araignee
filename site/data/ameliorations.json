@@ -46,5 +46,28 @@
    "test_pf": 1.69
   },
   "remarque": "plateau fragile (19/34 voisins positifs) : avantage non prouvé, en observation sur données réelles"
+ },
+ {
+  "date": "2026-10-18 (mode x2)",
+  "essais": 0,
+  "actuel": {
+   "verdict": "DATA VALIDATED",
+   "train_pct": 0.45,
+   "test_pct": 1.46,
+   "test_pf": 1.69
+  },
+  "decision": "NOUVEAUX RÉGLAGES ADOPTÉS",
+  "changements": {
+   "ratio_gain_risque": 1.5,
+   "risque_par_trade_pct": 2,
+   "mode": "x2"
+  },
+  "nouveau": {
+   "verdict": "DATA VALIDATED",
+   "train_pct": 3.66,
+   "test_pct": 4.22,
+   "test_pf": 1.98
+  },
+  "remarque": "choix de Mélodie : mode x2 (risque 2 %/trade, objectif 1,5R), garde-fou retour à 1 % au-delà de 8 % de baisse ; test sur 8 trades seulement"
  }
 ]
