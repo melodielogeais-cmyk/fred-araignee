@@ -1,0 +1,50 @@
+[
+ {
+  "date": "2026-10-18 (lancement)",
+  "essais": 2000,
+  "actuel": {
+   "verdict": "NO EDGE",
+   "train_pct": -10.17,
+   "test_pct": -0.09,
+   "test_pf": 0.99
+  },
+  "decision": "NOUVEAUX RÉGLAGES ADOPTÉS",
+  "changements": {
+   "sweep_fenetre_1m": 5,
+   "sweep_min_pct": 0.08,
+   "sweep_max_pct": 0.3,
+   "scan_bougies_5m": 48,
+   "volume_pic_x": 1.5,
+   "bos_recul_1m": 3,
+   "divergence_recul_1m": 30,
+   "jev_score_min": 4,
+   "chief_suivre_biais": true,
+   "ratio_gain_risque": 1.0,
+   "trail_apres_pct": 0.3,
+   "trail_distance_pct": 0.1,
+   "stop_marge_pct": 0.1,
+   "stop_min_pct": 0.1,
+   "pause_apres_trade_min": 30,
+   "duree_max_trade_min": 180,
+   "autoriser_short": false,
+   "taille_apres_perte": 0.5,
+   "quant_actif": false,
+   "quant_entrees": [
+    "liquidite",
+    "credit",
+    "btc200"
+   ],
+   "quant_cadran_min": 0.75,
+   "quant_vol_rang_min": 0.3,
+   "quant_vol_rang_max": 0.9,
+   "quant_journal_pf_min": 0.5
+  },
+  "nouveau": {
+   "verdict": "DATA VALIDATED",
+   "train_pct": 0.45,
+   "test_pct": 1.46,
+   "test_pf": 1.69
+  },
+  "remarque": "plateau fragile (19/34 voisins positifs) : avantage non prouvé, en observation sur données réelles"
+ }
+]
