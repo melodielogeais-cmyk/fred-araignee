@@ -5,7 +5,7 @@ import os
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-ALLOWED = ("/", "/index.html", "/data/state.json", "/data/backtest.json", "/data/ameliorations.json", "/favicon.svg")
+ALLOWED = ("/", "/index.html", "/data/state.json", "/data/local.json", "/data/backtest.json", "/data/ameliorations.json", "/favicon.svg")
 
 
 class Handler(SimpleHTTPRequestHandler):

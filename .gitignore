@@ -6,3 +6,4 @@ data/*.tmp
 data/backtest-journal.csv
 _site/
 .DS_Store
+data/local*

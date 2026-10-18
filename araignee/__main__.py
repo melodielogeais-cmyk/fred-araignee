@@ -171,7 +171,7 @@ def live(cfg):
     notify = telegram()
     print("{} en direct ({}) – SIMULATION avec {} € fictifs, aucun ordre réel.".format(
         cfg["nom"], ", ".join(cfg["paires"]), cfg["capital_fictif"]))
-    pf = Portfolio(cfg, os.path.join(DATA, "state.json"))
+    pf = Portfolio(cfg, os.path.join(DATA, "local.json"))  # le Fred du Mac, séparé du Fred en ligne
     while True:
         try:
             cfg = load_cfg()  # relu à chaque tour : les nouveaux réglages s'appliquent sans redémarrer
