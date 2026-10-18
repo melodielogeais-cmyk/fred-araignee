@@ -45,10 +45,11 @@ def main():
     ap.add_argument("--sans-telechargement", action="store_true")
     a = ap.parse_args()
     base = load_cfg({"cerveau": "regles"})
-    pair = base["paires"][0]
+    pairs = base["paires"]
     if not a.sans_telechargement:
-        refresh_cache(pair)
-    m1 = json.load(open(os.path.join(CACHE, "{}-60.json".format(pair))))
+        for p in pairs:
+            refresh_cache(p)
+    m1 = json.load(open(os.path.join(CACHE, "{}-60.json".format(pairs[0]))))
     t_end, t_start = m1[-1]["t"], m1[0]["t"] + 8 * 3600
     t_split = t_end - 30 * 86400
     tmp = os.path.join(CACHE, "auto.json")
@@ -75,7 +76,10 @@ def main():
             break
         te = bt(over, t_split, t_end)
         v = verdict(tr, te)
-        if v == "DATA VALIDATED" and te["performance_pct"] > cur_te["performance_pct"]:
+        # avec plusieurs cryptos : la variante ne doit perdre sur aucune d'elles pendant le test
+        each_ok = all(bt(dict(over, paires=[p]), t_split, t_end)["performance_pct"] >= 0 for p in pairs) \
+            if len(pairs) > 1 else True
+        if v == "DATA VALIDATED" and each_ok and te["performance_pct"] > cur_te["performance_pct"]:
             best = (over, tr, te, v)
             break
 

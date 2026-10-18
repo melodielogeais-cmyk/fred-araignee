@@ -10,9 +10,9 @@
   "appels_ia_max_par_jour": 60,
   "capital_fictif": 1000,
   "levier": 12,
-  "risque_par_trade_pct": 1,
+  "risque_par_trade_pct": 2,
   "taille_apres_perte": 0.5,
-  "ratio_gain_risque": 1.0,
+  "ratio_gain_risque": 1.5,
   "frais_entree_pct": 0.05,
   "frais_objectif_pct": 0.02,
   "frais_stop_pct": 0.05,
@@ -61,5 +61,9 @@
   "perte_max_jour_pct": 6,
   "premier_passage_heures": 1,
   "rattrapage_max_heures": 24,
-  "intervalle_live_s": 30
+  "intervalle_live_s": 30,
+  "mode": "x2",
+  "risque_prudent_pct": 1,
+  "repli_baisse_pct": 8,
+  "retour_baisse_pct": 4
 }

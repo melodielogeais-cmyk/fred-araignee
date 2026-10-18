@@ -124,6 +124,8 @@ def finish(pf, cfg):
     pf.s["paires"] = cfg["paires"]
     pf.s["devise"] = cfg["devise"]
     pf.s["levier"] = cfg["levier"]
+    pf.s["mode"] = cfg.get("mode")
+    pf.s["risque_pct"] = pf.risk_mode()
     pf.save()
 
 

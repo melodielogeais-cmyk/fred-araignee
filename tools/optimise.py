@@ -72,19 +72,23 @@ def main():
     ap.add_argument("--essais", type=int, default=150)
     ap.add_argument("--test-jours", type=int, default=10)
     ap.add_argument("--graine", type=int, default=7)
+    ap.add_argument("--paire", default="BTC-EUR")
+    ap.add_argument("--actuels-seulement", action="store_true", help="ne teste que les réglages actuels")
     a = ap.parse_args()
     random.seed(a.graine)
-    m1 = json.load(open(os.path.join(ROOT, "cache", "BTC-EUR-60.json")))
+    m1 = json.load(open(os.path.join(ROOT, "cache", "{}-60.json".format(a.paire))))
     t_end = m1[-1]["t"]
     t_start = m1[0]["t"] + 8 * 3600
     t_split = t_end - a.test_jours * 86400
-    base = load_cfg({"cerveau": "regles"})
+    base = load_cfg({"cerveau": "regles", "paires": [a.paire]})
     tmp = os.path.join(ROOT, "cache", "opt.json")
 
     def bt(cfg, s, e):
         return backtest(cfg, 0, cache=True, quiet=True, start=s, end=e, path=tmp)
 
-    overs = [{}] + [{k: random.choice(v) for k, v in SPACE.items()} for _ in range(a.essais - 1)]
+    n_rand = 0 if a.actuels_seulement else a.essais - 1
+    overs = [{"paires": [a.paire]}] + [dict({k: random.choice(v) for k, v in SPACE.items()}, paires=[a.paire])
+                                       for _ in range(n_rand)]
     results = []
     t0 = time.time()
     with ProcessPoolExecutor() as ex:

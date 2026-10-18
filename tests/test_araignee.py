@@ -69,6 +69,21 @@ class TestAraignee(unittest.TestCase):
             p = pf.s["positions"]["BTC-EUR"]
             self.assertLessEqual(p["notional"], self.cfg["capital_fictif"] * self.cfg["levier"] + 1e-6)
 
+    def test_garde_fou_x2(self):
+        cfg = dict(self.cfg, mode="x2", risque_par_trade_pct=2, risque_prudent_pct=1,
+                   repli_baisse_pct=8, retour_baisse_pct=4)
+        with tempfile.TemporaryDirectory() as d:
+            pf = Portfolio(cfg, os.path.join(d, "s.json"), fresh=True)
+            pf.quiet = True
+            self.assertEqual(pf.risk_mode(), 2)
+            pf.s["trades"].append({"pnl": -90.0, "t": 0, "t_exit": 0})  # -9 % du capital de départ
+            pf.s["capital"] -= 90.0
+            self.assertEqual(pf.risk_mode(), 1)
+            self.assertEqual(pf.s["mode_actif"], "prudent")
+            pf.s["trades"].append({"pnl": 70.0, "t": 0, "t_exit": 0})  # baisse revenue à 2 %
+            pf.s["capital"] += 70.0
+            self.assertEqual(pf.risk_mode(), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -55,6 +55,30 @@ class Portfolio:
             return False
         return sum(x["pnl"] for x in today) > -self.s["depart"] * self.cfg["perte_max_jour_pct"] / 100
 
+    # --- RISK : garde-fou « repli prudent » du mode x2 ---
+    def drawdown_pct(self):
+        peak, eq = self.s["depart"], self.s["depart"]
+        for x in self.s["trades"]:
+            eq += x["pnl"]
+            peak = max(peak, eq)
+        return (peak - self.s["capital"]) / peak * 100 if peak else 0.0
+
+    def risk_mode(self, pair=None, t=None):
+        """Risque par trade selon le mode : x2 (agressif) ou prudent si la baisse dépasse le seuil."""
+        c = self.cfg
+        if c.get("mode") != "x2":
+            return c["risque_par_trade_pct"]
+        dd = self.drawdown_pct()
+        mode = self.s.get("mode_actif", "x2")
+        if mode == "x2" and dd > c["repli_baisse_pct"]:
+            mode = "prudent"
+        elif mode == "prudent" and dd < c["retour_baisse_pct"]:
+            mode = "x2"
+        if mode != self.s.get("mode_actif", "x2") and t is not None:
+            self.note(pair, t, "mode {} · drawdown {:.1f}%".format(mode, dd), "info", agent="risk")
+        self.s["mode_actif"] = mode
+        return c["risque_par_trade_pct"] if mode == "x2" else c["risque_prudent_pct"]
+
     # --- SIZE + FILLS : ouverture ---
     def open(self, pair, sig, t, note, source, confiance, notify=None):
         c = self.cfg
@@ -69,7 +93,7 @@ class Portfolio:
         dist = abs(price - stop) / price
         if dist <= 0 or dist * 100 > c["stop_max_pct"]:
             return False
-        risk_pct = c["risque_par_trade_pct"] * (c["taille_apres_perte"] if self.s.get("derniere_perte") else 1)
+        risk_pct = self.risk_mode(pair, t) * (c["taille_apres_perte"] if self.s.get("derniere_perte") else 1)
         risk_pct *= min(1.0, self.s.get("cadran", 1.0))  # QUANT : le cadran est le premier multiplicateur
         notional = min(self.s["capital"] * risk_pct / 100 / dist, self.s["capital"] * c["levier"])
         size = notional / price
