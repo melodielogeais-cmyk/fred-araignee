@@ -69,5 +69,16 @@
    "test_pf": 1.98
   },
   "remarque": "choix de Mélodie : mode x2 (risque 2 %/trade, objectif 1,5R), garde-fou retour à 1 % au-delà de 8 % de baisse ; test sur 8 trades seulement"
+ },
+ {
+  "date": "2026-10-25 09:03 UTC",
+  "essais": 300,
+  "actuel": {
+   "verdict": "TRADE-OFF",
+   "train_pct": -2.6,
+   "test_pct": 2.94,
+   "test_pf": 1.71
+  },
+  "decision": "réglages actuels conservés (aucune variante validée et meilleure)"
  }
 ]
