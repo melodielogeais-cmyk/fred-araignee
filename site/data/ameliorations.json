@@ -80,5 +80,27 @@
    "test_pf": 1.71
   },
   "decision": "réglages actuels conservés (aucune variante validée et meilleure)"
+ },
+ {
+  "date": "2026-11-01 11:07 UTC",
+  "essais": 300,
+  "actuel": {
+   "verdict": "DATA VALIDATED",
+   "train_pct": 3.75,
+   "test_pct": 2.68,
+   "test_pf": 2.03
+  },
+  "decision": "NOUVEAUX RÉGLAGES ADOPTÉS",
+  "changements": {
+   "volume_pic_x": 1.5,
+   "taille_apres_perte": 1,
+   "duree_max_trade_min": 90
+  },
+  "nouveau": {
+   "verdict": "DATA VALIDATED",
+   "train_pct": 9.05,
+   "test_pct": 3.18,
+   "test_pf": 2.23
+  }
  }
 ]
