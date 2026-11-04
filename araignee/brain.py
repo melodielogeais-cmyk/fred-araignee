@@ -70,6 +70,10 @@ class Brain:
         fallback = (rules_go, crawler_note(sig), "règles", conf, vet)
         if self.provider == "regles" or sig["score"] < c["jev_score_min_ia"]:
             return fallback
+        # IA prévue mais indisponible (clé, budget, panne) : les règles seules sont perdantes hors échantillon
+        # (backtest 1 an : -23 %), donc on ne trade pas plutôt que de repasser sur elles
+        if c.get("sans_ia_pas_de_trade", True):
+            fallback = (False, "skip · cerveau {} indisponible".format(self.provider), "règles", conf, vet)
         # le même setup dure souvent plusieurs minutes : on réutilise la décision au lieu de rappeler l'IA
         prev = self.state.get("derniere_decision_ia", {}).get(pair)
         if prev and prev["side"] == sig["side"] and abs(prev["level"] - sig["level"]) <= sig["level"] * 0.0005 \

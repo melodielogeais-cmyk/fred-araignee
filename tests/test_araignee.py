@@ -102,6 +102,22 @@ class TestAraignee(unittest.TestCase):
         b.decide("BTC-EUR", dict(sig, t=sig["t"] + 3600), {})     # une heure plus tard : nouvel avis
         self.assertEqual(len(appels), 2)
 
+    def test_pas_de_trade_si_ia_indisponible(self):
+        cfg = dict(self.cfg, cerveau="grok", jev_score_min_ia=3, jev_score_min=3, chief_suivre_biais=False,
+                   chief_conf_min=0.0)
+
+        class CerveauEnPanne(Brain):
+            def _grok(self, pair, facts):
+                raise RuntimeError("panne simulée")
+
+        sig = {"t": 1_700_000_000, "side": "long", "price": 100.0, "level": 99.9, "depth": 0.1, "score": 5,
+               "grade": "A+", "bias": "LONG", "worth": 1.0, "aligned": True, "checks": {}, "details": {}}
+        go, note, *_ = CerveauEnPanne(cfg, {}).decide("BTC-EUR", sig, {})
+        self.assertFalse(go)
+        self.assertIn("indisponible", note)
+        go_regles, *_ = Brain(dict(cfg, cerveau="regles"), {}).decide("BTC-EUR", sig, {})
+        self.assertTrue(go_regles)  # le mode « règles » explicite (backtests) reste inchangé
+
     def test_consigne_replay_dans_le_prompt(self):
         from araignee.brain import SYSTEM
         self.assertIn("book not read (replay)", SYSTEM)
