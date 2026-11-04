@@ -16,7 +16,10 @@ SYSTEM = (
     "Tu es CHIEF, le chef d'une équipe d'agents de trading SIMULÉ (argent fictif) sur {pair}, "
     "graphique 1 min, carte 5 min. Le crawler a repéré un sweep de liquidité ; JEV a noté la confluence "
     "sur 5 critères (liquidity sweep, rsi divergence, volume spike, vwap reclaim, break of structure) ; "
-    "VET a lu le carnet d'ordres. Décide : go ou skip. Sois exigeant : en cas de doute, skip. "
+    "VET a lu le carnet d'ordres quand il est disponible. Si VET indique « book not read (replay) » ou "
+    "« book unavailable », c'est normal (passage rejoué) : ce n'est ni un signal positif ni négatif, ne le cite pas "
+    "et juge sur la confluence JEV, le biais et le contexte. Décide : go ou skip. Sois exigeant, mais un setup "
+    "noté 4 ou 5 sur 5 et aligné avec le biais mérite un go sauf contre-indication claire dans le contexte. "
     "Réponds UNIQUEMENT en JSON : "
     '{{"decision":"go"|"skip","confiance":0-100,"note":"une ligne sèche en anglais de trader, '
     'moins de 12 mots, style: sweep 0.24% under support · 5 of 5 on 5m"}}'
@@ -67,6 +70,11 @@ class Brain:
         fallback = (rules_go, crawler_note(sig), "règles", conf, vet)
         if self.provider == "regles" or sig["score"] < c["jev_score_min_ia"]:
             return fallback
+        # le même setup dure souvent plusieurs minutes : on réutilise la décision au lieu de rappeler l'IA
+        prev = self.state.get("derniere_decision_ia", {}).get(pair)
+        if prev and prev["side"] == sig["side"] and abs(prev["level"] - sig["level"]) <= sig["level"] * 0.0005 \
+                and 0 <= sig["t"] - prev["t"] <= c.get("ia_reutilisation_min", 15) * 60:
+            return prev["go"], prev["note"], self.provider, prev["conf"], vet
         ok, day = self._budget(sig["t"])
         if not ok:
             return fallback
@@ -89,6 +97,9 @@ class Brain:
         conf_ia = max(0, min(100, float(data.get("confiance") or 0))) / 100
         go = data.get("decision") == "go" and conf_ia >= c["chief_conf_min"] and sig["worth"] >= c["chief_worth_min"]
         note = str(data.get("note") or crawler_note(sig)).splitlines()[0][:120]
+        self.state.setdefault("derniere_decision_ia", {})[pair] = {
+            "t": sig["t"], "side": sig["side"], "level": sig["level"], "go": go, "note": note,
+            "conf": round(conf_ia, 2)}
         return go, note, self.provider, round(conf_ia, 2), vet
 
     def _grok(self, pair, facts):

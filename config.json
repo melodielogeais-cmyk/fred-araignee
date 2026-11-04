@@ -8,6 +8,7 @@
   "modele_grok": "grok-4.7",
   "modele_claude": "claude-haiku-5-5",
   "appels_ia_max_par_jour": 60,
+  "ia_reutilisation_min": 15,
   "capital_fictif": 1000,
   "levier": 12,
   "risque_par_trade_pct": 2,
