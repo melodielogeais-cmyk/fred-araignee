@@ -84,6 +84,28 @@ class TestAraignee(unittest.TestCase):
             pf.s["capital"] += 70.0
             self.assertEqual(pf.risk_mode(), 2)
 
+    def test_ia_pas_rappelee_pour_le_meme_setup(self):
+        cfg = dict(self.cfg, cerveau="grok", jev_score_min_ia=3, chief_suivre_biais=False)
+        appels = []
+
+        class FauxCerveau(Brain):
+            def _grok(self, pair, facts):
+                appels.append(facts["heure_utc"])
+                return '{"decision":"skip","confiance":40,"note":"skip test"}'
+
+        b = FauxCerveau(cfg, {})
+        sig = {"t": 1_700_000_000, "side": "long", "price": 100.0, "level": 99.9, "depth": 0.1, "score": 4,
+               "grade": "A", "bias": "LONG", "worth": 0.8, "aligned": True, "checks": {}, "details": {}}
+        b.decide("BTC-EUR", sig, {})
+        b.decide("BTC-EUR", dict(sig, t=sig["t"] + 60), {})       # minute suivante, même setup
+        self.assertEqual(len(appels), 1)
+        b.decide("BTC-EUR", dict(sig, t=sig["t"] + 3600), {})     # une heure plus tard : nouvel avis
+        self.assertEqual(len(appels), 2)
+
+    def test_consigne_replay_dans_le_prompt(self):
+        from araignee.brain import SYSTEM
+        self.assertIn("book not read (replay)", SYSTEM)
+
 
 if __name__ == "__main__":
     unittest.main()
