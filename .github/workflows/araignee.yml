@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: araignee
@@ -19,6 +21,9 @@ jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -45,3 +50,10 @@ jobs:
           [ -f data/state-journal.csv ] && git add data/state-journal.csv || true
           git diff --cached --quiet || git commit -m "Fred : passage $(date -u +'%Y-%m-%d %H:%M') UTC"
           git pull --rebase && git push
+      # Publication du tableau de bord sur GitHub Pages (gratuit, sans limite de déploiements)
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: pages
+        uses: actions/deploy-pages@v4

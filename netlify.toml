@@ -1,3 +1,6 @@
 [build]
   publish = "site"
   command = ""
+  # Le tableau de bord est publié sur GitHub Pages : Netlify ignore tous les déploiements
+  # (chaque passage de Fred épuisait les crédits gratuits de l'équipe).
+  ignore = "exit 0"

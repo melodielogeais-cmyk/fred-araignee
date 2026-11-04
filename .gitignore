@@ -8,3 +8,4 @@ _site/
 .DS_Store
 data/local*
 .env.tmp
+fred-local.log
