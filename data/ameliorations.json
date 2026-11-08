@@ -102,5 +102,27 @@
    "test_pct": 3.18,
    "test_pf": 2.23
   }
+ },
+ {
+  "date": "2026-11-08 10:51 UTC",
+  "essais": 300,
+  "actuel": {
+   "verdict": "DATA VALIDATED",
+   "train_pct": 4.71,
+   "test_pct": 6.37,
+   "test_pf": 9.91
+  },
+  "decision": "NOUVEAUX RÉGLAGES ADOPTÉS",
+  "changements": {
+   "ratio_gain_risque": 3.0,
+   "sweep_min_pct": 0.08,
+   "trail_distance_pct": 0.15
+  },
+  "nouveau": {
+   "verdict": "DATA VALIDATED",
+   "train_pct": 6.86,
+   "test_pct": 6.96,
+   "test_pf": 10.66
+  }
  }
 ]
