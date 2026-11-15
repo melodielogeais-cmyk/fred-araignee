@@ -124,5 +124,16 @@
    "test_pct": 6.96,
    "test_pf": 10.66
   }
+ },
+ {
+  "date": "2026-11-15 11:33 UTC",
+  "essais": 300,
+  "actuel": {
+   "verdict": "TRADE-OFF",
+   "train_pct": 9.89,
+   "test_pct": -4.73,
+   "test_pf": 0.24
+  },
+  "decision": "réglages actuels conservés (aucune variante validée et meilleure)"
  }
 ]
